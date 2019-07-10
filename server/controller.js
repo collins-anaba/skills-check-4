@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 
 const register = async (req,res) => {
     const db = req.app.get('db'),
-        { username, password, profile_pic } = req.body;
+        { username, password, user_pic } = req.body;
 
     const result = await db.get_user([ username ])
     const existingUser = result[0]
@@ -13,10 +13,10 @@ const register = async (req,res) => {
 
     const salt = bcrypt.genSaltSync(12)
     const hash = bcrypt.hashSync(password, salt)
-    const registeredUser = await db.register_user([ username, hash, profile_pic ])
+    const registeredUser = await db.register_user([ username, hash, user_pic ])
     const user = registeredUser[0]
     if(user) {
-        req.session.user = { username: user.username, id: user.id, profile: user.profile_pic }
+        req.session.user = { username: user.username, id: user.id, profile: user.user_pic }
     }
     
 
@@ -39,7 +39,7 @@ const login = async (req,res) => {
         return res.status(403).send('Incorrect password');
     }
 
-    req.session.user = { id: user.id, username: user.username, profile: user.profile_pic };
+    req.session.user = { id: user.id, username: user.username, profile: user.user_pic };
         
     return res.send(req.session.user);
 }
@@ -51,7 +51,7 @@ const session = async (req,res) => {
     const foundUser = await db.get_user([username]);
     const user = foundUser[0];
     if (req.session) {
-        req.session.user = { id: user.id, username: user.username, profile: user.profile_pic };
+        req.session.user = { id: user.id, username: user.username, profile: user.user_pic };
     
         return res.send(req.session.user);
     }
@@ -65,10 +65,10 @@ const logout = (req,res) => {
 
 const postMessage = async (req,res) => {
     const db = req.app.get('db'),
-        { title, image_url, content } = req.body,
+        { title, image, content } = req.body,
         { id } = req.session.user;
 
-    const postMessage = await db.post_message( [ id, title, image_url, content ] )
+    const postMessage = await db.post_message( [ id, title, image, content ] )
     return res.status(200).send(postMessage)
 }
 
